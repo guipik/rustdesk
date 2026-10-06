@@ -1,10 +1,10 @@
 diff --git a/build.rs b/build.rs
-index 43e3282..e472bea 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -1,4 +1,6 @@
+@@ -1,4 +1,7 @@
  fn main() {
 +    println!("cargo:rerun-if-env-changed=RUSTDESK_APP_NAME");
++    println!("cargo:rerun-if-env-changed=RUSTDESK_FORCE_WEBSOCKET");
 +
      let out_dir = format!("{}/protos", std::env::var("OUT_DIR").unwrap());
  
@@ -26,3 +26,31 @@ index 6fe1004..11fba8a 100644
      static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
      static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
      pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
+diff --git a/src/websocket.rs b/src/websocket.rs
+--- a/src/websocket.rs
++++ b/src/websocket.rs
+@@ -423,7 +423,9 @@
+     };
+     let protocol = if is_domain {
+         let api_server = Config::get_option("api-server");
+-        if api_server.starts_with("https") {
++        if option_env!("RUSTDESK_FORCE_WEBSOCKET") == Some("Y")
++            || api_server.starts_with("https")
++        {
+             "wss"
+         } else {
+             "ws"
+@@ -480,9 +482,10 @@
+         assert_eq!(check_ws("127.0.0.1:21115"), "ws://127.0.0.1:21118");
+         assert_eq!(check_ws("127.0.0.1:21116"), "ws://127.0.0.1:21118");
+         assert_eq!(check_ws("127.0.0.1:21117"), "ws://127.0.0.1:21119");
+-        assert_eq!(check_ws("rustdesk.com:21115"), "ws://rustdesk.com/ws/id");
+-        assert_eq!(check_ws("rustdesk.com:21116"), "ws://rustdesk.com/ws/id");
+-        assert_eq!(check_ws("rustdesk.com:21117"), "ws://rustdesk.com/ws/relay");
++        let protocol = if option_env!("RUSTDESK_FORCE_WEBSOCKET") == Some("Y") { "wss" } else { "ws" };
++        assert_eq!(check_ws("rustdesk.com:21115"), format!("{protocol}://rustdesk.com/ws/id"));
++        assert_eq!(check_ws("rustdesk.com:21116"), format!("{protocol}://rustdesk.com/ws/id"));
++        assert_eq!(check_ws("rustdesk.com:21117"), format!("{protocol}://rustdesk.com/ws/relay"));
+         // set relay-server without port
+         Config::set_option("relay-server".to_string(), "127.0.0.1".to_string());
+         Config::set_option(

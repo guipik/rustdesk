@@ -12,7 +12,8 @@ The ProVDesk About page offers this source link.
 
 WebSocket is enforced by the ProVDesk build. ID/rendezvous server, relay server,
 API URL and server public key are configured normally at runtime; this build
-contains no embedded values for those settings.
+contains no embedded values for those settings. Domain endpoints use secure
+WebSocket (`wss://`) even when the API URL is empty.
 
 The previous preconfigured release was withdrawn on 2026-10-06. Its matching
 source remains in Git history for recipients who already downloaded it.
@@ -46,7 +47,7 @@ when publishing a release. A local review build must not be represented as a
 published-source release before those changes are publicly accessible.
 
 Upstream source baseline: d5311574b (RustDesk 1.5.0).
-Pinned hbb_common submodule: 29cf7cbe4d38ce36020749f713fb066299f02431.
+Pinned hbb_common submodule: 229b904508364c8997aad0fb5af57effac859f60.
 Review build toolchain: Rust 1.91.1, Flutter 3.24.5, Python 3.13, MSVC x64.
 
 
@@ -60,6 +61,9 @@ Review build toolchain: Rust 1.91.1, Flutter 3.24.5, Python 3.13, MSVC x64.
   if a build enables the flag; this Windows build does not use that path.
 - libs/hbb_common/build.rs and src/config.rs (tracked parent patch): choose the
   compile-time application name early enough for configuration/service paths.
+- libs/hbb_common/src/websocket.rs (tracked parent patch): select secure
+  WebSocket for domain endpoints in ProVDesk builds without requiring an API URL;
+  ordinary builds and IP endpoint handling retain their existing behavior.
 - src/platform/windows.rs: retain the existing ProVDesk installer naming and
   publisher changes.
 - flutter/windows/runner/Runner.rc and libs/portable/build.rs: brand the Windows

@@ -53,6 +53,12 @@ pub type NotifyMessageBox = fn(String, String, String, String) -> dyn Future<Out
 // the executable name of the portable version
 pub const PORTABLE_APPNAME_RUNTIME_ENV_KEY: &str = "RUSTDESK_APPNAME";
 
+const EMBED_RENDEZVOUS_SERVER: Option<&str> = option_env!("RUSTDESK_RENDEZVOUS_SERVER");
+const EMBED_RELAY_SERVER: Option<&str> = option_env!("RUSTDESK_RELAY_SERVER");
+const EMBED_SERVER_KEY: Option<&str> = option_env!("RUSTDESK_SERVER_KEY");
+const EMBED_API_SERVER: Option<&str> = option_env!("RUSTDESK_API_SERVER");
+const EMBED_FORCE_WEBSOCKET: Option<&str> = option_env!("RUSTDESK_FORCE_WEBSOCKET");
+
 pub const PLATFORM_WINDOWS: &str = "Windows";
 pub const PLATFORM_LINUX: &str = "Linux";
 pub const PLATFORM_MACOS: &str = "Mac OS";
@@ -2245,6 +2251,35 @@ pub fn load_custom_client() {
             return;
         };
         read_custom_client(&data.trim());
+    }
+}
+
+pub fn apply_embedded_network_settings() {
+    let mut overwrite_settings = config::OVERWRITE_SETTINGS.write().unwrap();
+    let mut hard_settings = config::HARD_SETTINGS.write().unwrap();
+    let mut set_forced_option = |key: &str, value: &str| {
+        overwrite_settings.insert(key.to_owned(), value.to_owned());
+        hard_settings.insert(key.to_owned(), value.to_owned());
+    };
+
+    if let Some(server) = EMBED_RENDEZVOUS_SERVER.filter(|value| !value.is_empty()) {
+        set_forced_option(keys::OPTION_CUSTOM_RENDEZVOUS_SERVER, server);
+    }
+    if let Some(relay) = EMBED_RELAY_SERVER.filter(|value| !value.is_empty()) {
+        set_forced_option(keys::OPTION_RELAY_SERVER, relay);
+    }
+    if let Some(server_key) = EMBED_SERVER_KEY.filter(|value| !value.is_empty()) {
+        set_forced_option(keys::OPTION_KEY, server_key);
+    }
+    if let Some(api_server) = EMBED_API_SERVER.filter(|value| !value.is_empty()) {
+        set_forced_option(keys::OPTION_API_SERVER, api_server);
+    }
+    if EMBED_FORCE_WEBSOCKET == Some("Y")
+        || EMBED_RENDEZVOUS_SERVER.is_some()
+        || EMBED_SERVER_KEY.is_some()
+        || EMBED_API_SERVER.is_some()
+    {
+        set_forced_option(keys::OPTION_ALLOW_WEBSOCKET, "Y");
     }
 }
 

@@ -1,25 +1,25 @@
 # ProVDesk Windows build
 
 Modified from RustDesk by WanPulse on 2026-10-06. The functional changes are the
-ProVDesk application name and embedded network configuration. The original
+ProVDesk application name and enforced WebSocket transport. The original
 copyright notices and AGPL-3.0 license in LICENCE are retained; the license and
 its warranty disclaimer apply to this modified version.
 
 Public source: https://github.com/guipik/rustdesk
 The ProVDesk About page offers this source link.
 
-## Embedded configuration
+## Network configuration
 
-- ID/rendezvous and relay: betterdesk.tests.provconnect.net
-- API: https://betterdesk.tests.provconnect.net
-- Public server key: aw/rK4HCn1QYrVOKXHE+/0R5dCyExVk6SyAUCM5hqKU=
-- WebSocket: enabled
+WebSocket is enforced by the ProVDesk build. ID/rendezvous server, relay server,
+API URL and server public key are configured normally at runtime; this build
+contains no embedded values for those settings.
 
-These settings are compile-time overrides. No private server key is included.
+The previous preconfigured release was withdrawn on 2026-10-06. Its matching
+source remains in Git history for recipients who already downloaded it.
 
 ## Reproduce the Windows build
 
-Clone the published ProVDesk release commit with `git clone --recurse-submodules`.
+Clone the published ProVDesk source commit with `git clone --recurse-submodules`.
 Use the upstream Windows build prerequisites (Rust/MSVC, Flutter, Python and
 vcpkg): https://rustdesk.com/docs/en/dev/build/windows/
 Keep Cargo.lock and flutter/pubspec.lock from the same source commit.
@@ -30,7 +30,7 @@ Run from the repository root:
 ```
 
 The script applies scripts/windows/provdesk-hbb-common.patch to the pinned
-upstream submodule, embeds the settings above, and produces the standalone
+upstream submodule, enforces WebSocket, and produces the standalone
 artifacts/ProVDesk/ProVDesk.exe together with LICENCE and this notice.
 `-SkipPortablePack` instead produces a folder bundle; distribute the entire
 folder, including its DLLs and data. The script preserves the caller's build
@@ -52,12 +52,12 @@ Review build toolchain: Rust 1.91.1, Flutter 3.24.5, Python 3.13, MSVC x64.
 
 ## Review scope and regression surface
 
-- src/common.rs, build.rs: embed and enforce the network settings; rebuild when
-  their build environment changes.
-- src/core_main.rs and src/flutter_ffi.rs: apply these overrides after loading
+- src/common.rs, build.rs: enforce only WebSocket when the build flag is enabled;
+  rebuild when that flag changes. Server addresses and keys remain configurable.
+- src/core_main.rs and src/flutter_ffi.rs: apply the WebSocket override after loading
   custom settings, before normal Windows application initialization.
 - src/service.rs: the existing macOS service hook also applies these settings
-  if a build supplies them; this Windows build does not use that path.
+  if a build enables the flag; this Windows build does not use that path.
 - libs/hbb_common/build.rs and src/config.rs (tracked parent patch): choose the
   compile-time application name early enough for configuration/service paths.
 - src/platform/windows.rs: retain the existing ProVDesk installer naming and

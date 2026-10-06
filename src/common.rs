@@ -53,10 +53,6 @@ pub type NotifyMessageBox = fn(String, String, String, String) -> dyn Future<Out
 // the executable name of the portable version
 pub const PORTABLE_APPNAME_RUNTIME_ENV_KEY: &str = "RUSTDESK_APPNAME";
 
-const EMBED_RENDEZVOUS_SERVER: Option<&str> = option_env!("RUSTDESK_RENDEZVOUS_SERVER");
-const EMBED_RELAY_SERVER: Option<&str> = option_env!("RUSTDESK_RELAY_SERVER");
-const EMBED_SERVER_KEY: Option<&str> = option_env!("RUSTDESK_SERVER_KEY");
-const EMBED_API_SERVER: Option<&str> = option_env!("RUSTDESK_API_SERVER");
 const EMBED_FORCE_WEBSOCKET: Option<&str> = option_env!("RUSTDESK_FORCE_WEBSOCKET");
 
 pub const PLATFORM_WINDOWS: &str = "Windows";
@@ -2379,31 +2375,15 @@ pub fn load_custom_client() {
 }
 
 pub fn apply_embedded_network_settings() {
-    let mut overwrite_settings = config::OVERWRITE_SETTINGS.write().unwrap();
-    let mut hard_settings = config::HARD_SETTINGS.write().unwrap();
-    let mut set_forced_option = |key: &str, value: &str| {
-        overwrite_settings.insert(key.to_owned(), value.to_owned());
-        hard_settings.insert(key.to_owned(), value.to_owned());
-    };
-
-    if let Some(server) = EMBED_RENDEZVOUS_SERVER.filter(|value| !value.is_empty()) {
-        set_forced_option(keys::OPTION_CUSTOM_RENDEZVOUS_SERVER, server);
-    }
-    if let Some(relay) = EMBED_RELAY_SERVER.filter(|value| !value.is_empty()) {
-        set_forced_option(keys::OPTION_RELAY_SERVER, relay);
-    }
-    if let Some(server_key) = EMBED_SERVER_KEY.filter(|value| !value.is_empty()) {
-        set_forced_option(keys::OPTION_KEY, server_key);
-    }
-    if let Some(api_server) = EMBED_API_SERVER.filter(|value| !value.is_empty()) {
-        set_forced_option(keys::OPTION_API_SERVER, api_server);
-    }
-    if EMBED_FORCE_WEBSOCKET == Some("Y")
-        || EMBED_RENDEZVOUS_SERVER.is_some()
-        || EMBED_SERVER_KEY.is_some()
-        || EMBED_API_SERVER.is_some()
-    {
-        set_forced_option(keys::OPTION_ALLOW_WEBSOCKET, "Y");
+    if EMBED_FORCE_WEBSOCKET == Some("Y") {
+        config::OVERWRITE_SETTINGS
+            .write()
+            .unwrap()
+            .insert(keys::OPTION_ALLOW_WEBSOCKET.to_owned(), "Y".to_owned());
+        config::HARD_SETTINGS
+            .write()
+            .unwrap()
+            .insert(keys::OPTION_ALLOW_WEBSOCKET.to_owned(), "Y".to_owned());
     }
 }
 
@@ -2623,7 +2603,7 @@ pub fn is_udp_disabled() -> bool {
 
 /// Run KCP with its congestion window (nc=0) instead of the turbo profile it has always shipped.
 ///
-/// Opt-in: which profile wins depends on why packets are lost — nc=1 deepens real congestion,
+/// Opt-in: which profile wins depends on why packets are lost â€” nc=1 deepens real congestion,
 /// while nc=0 reads random loss as congestion and its RTO backoff drops cwnd to 1. Undecidable
 /// without a shaped link, so keep what users run today.
 #[inline]

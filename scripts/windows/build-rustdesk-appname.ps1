@@ -6,18 +6,6 @@ param(
 		[string]$EditorName = 'WanPulse SAS',
 
 		[Parameter(Mandatory = $false)]
-		[string]$ServerId = 'betterdesk.tests.provconnect.net',
-
-		[Parameter(Mandatory = $false)]
-		[string]$RelayServer = 'betterdesk.tests.provconnect.net',
-
-		[Parameter(Mandatory = $false)]
-		[string]$ServerKey = 'aw/rK4HCn1QYrVOKXHE+/0R5dCyExVk6SyAUCM5hqKU=',
-
-		[Parameter(Mandatory = $false)]
-		[string]$ApiServer = 'https://betterdesk.tests.provconnect.net',
-
-		[Parameter(Mandatory = $false)]
 		[string]$OutputDir = 'artifacts\ProVDesk',
 
 		[Parameter(Mandatory = $false)]
@@ -39,10 +27,6 @@ $runnerRcTarget = Join-Path $repoRoot 'flutter\windows\runner\Runner.rc'
 $runnerRcBackup = "$runnerRcTarget.bak.appname"
 $originalAppNameEnv = [Environment]::GetEnvironmentVariable('RUSTDESK_APP_NAME', 'Process')
 $originalEditorNameEnv = [Environment]::GetEnvironmentVariable('RUSTDESK_EDITOR_NAME', 'Process')
-$originalServerEnv = [Environment]::GetEnvironmentVariable('RUSTDESK_RENDEZVOUS_SERVER', 'Process')
-$originalRelayEnv = [Environment]::GetEnvironmentVariable('RUSTDESK_RELAY_SERVER', 'Process')
-$originalServerKeyEnv = [Environment]::GetEnvironmentVariable('RUSTDESK_SERVER_KEY', 'Process')
-$originalApiServerEnv = [Environment]::GetEnvironmentVariable('RUSTDESK_API_SERVER', 'Process')
 $originalForceWebSocketEnv = [Environment]::GetEnvironmentVariable('RUSTDESK_FORCE_WEBSOCKET', 'Process')
 
 function Restore-FileIfBackedUp {
@@ -82,10 +66,6 @@ try {
 				# Export env var used by runtime/build
 				$env:RUSTDESK_APP_NAME = $AppName
 				$env:RUSTDESK_EDITOR_NAME = $EditorName
-				$env:RUSTDESK_RENDEZVOUS_SERVER = $ServerId
-				$env:RUSTDESK_RELAY_SERVER = $RelayServer
-				$env:RUSTDESK_SERVER_KEY = $ServerKey
-				$env:RUSTDESK_API_SERVER = $ApiServer
 				$env:RUSTDESK_FORCE_WEBSOCKET = 'Y'
 		}
 
@@ -148,10 +128,6 @@ finally {
 		if (Test-Path $runnerRcBackup) { Restore-FileIfBackedUp -BackupPath $runnerRcBackup -TargetPath $runnerRcTarget }
 		[Environment]::SetEnvironmentVariable('RUSTDESK_APP_NAME', $originalAppNameEnv, 'Process')
 		[Environment]::SetEnvironmentVariable('RUSTDESK_EDITOR_NAME', $originalEditorNameEnv, 'Process')
-		[Environment]::SetEnvironmentVariable('RUSTDESK_RENDEZVOUS_SERVER', $originalServerEnv, 'Process')
-		[Environment]::SetEnvironmentVariable('RUSTDESK_RELAY_SERVER', $originalRelayEnv, 'Process')
-		[Environment]::SetEnvironmentVariable('RUSTDESK_SERVER_KEY', $originalServerKeyEnv, 'Process')
-		[Environment]::SetEnvironmentVariable('RUSTDESK_API_SERVER', $originalApiServerEnv, 'Process')
 		[Environment]::SetEnvironmentVariable('RUSTDESK_FORCE_WEBSOCKET', $originalForceWebSocketEnv, 'Process')
 		Pop-Location
 }

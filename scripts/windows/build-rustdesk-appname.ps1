@@ -78,6 +78,17 @@ try {
 				Pop-Location
 		}
 
+        Push-Location flutter
+        try {
+                flutter pub get
+                if ($LASTEXITCODE -ne 0) { throw 'Flutter dependency resolution failed.' }
+        } finally { Pop-Location }
+        $originalRustLog = [Environment]::GetEnvironmentVariable('RUST_LOG', 'Process')
+        try {
+                $env:RUST_LOG = 'info'
+                flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart
+                if ($LASTEXITCODE -ne 0) { throw 'Flutter bridge generation failed.' }
+        } finally { [Environment]::SetEnvironmentVariable('RUST_LOG', $originalRustLog, 'Process') }
 		# Build core and flutter
 		$features = python .\build.py --flutter --print-features
 		if ($LASTEXITCODE -ne 0) { throw "build.py --print-features failed with exit code $LASTEXITCODE" }

@@ -23,6 +23,9 @@ source remains in Git history for recipients who already downloaded it.
 Clone the published ProVDesk source commit with `git clone --recurse-submodules`.
 Use the upstream Windows build prerequisites (Rust/MSVC, Flutter, Python and
 vcpkg): https://rustdesk.com/docs/en/dev/build/windows/
+Install flutter_rust_bridge_codegen 1.80.1 (with its uuid feature) and
+cargo-expand 1.0.95, as required by the upstream bridge workflow. The build
+script regenerates the ignored bridge files before compiling.
 Keep Cargo.lock and flutter/pubspec.lock from the same source commit.
 Run from the repository root:
 
@@ -70,6 +73,10 @@ Review build toolchain: Rust 1.91.1, Flutter 3.24.5, Python 3.13, MSVC x64.
   runner and standalone packer while retaining upstream copyright.
 - flutter/lib/desktop/pages/desktop_setting_page.dart: add a ProVDesk-only source
   link in About; upstream notices and default RustDesk UI remain present.
+- src/bridge_generated*.rs and flutter/lib/generated_bridge*.dart: regenerate
+  the upstream bindings with flutter_rust_bridge_codegen 1.80.1 so the current
+  cursor event is available to Flutter and the Windows build compiles. These
+  generated files are included in the release source archive.
 - scripts/windows/build-rustdesk-appname.ps1: configure the build, apply the
   pinned submodule patch and package the renamed executable with its notices.
 
